@@ -218,8 +218,13 @@
           <input id="height" name="height" type="text" placeholder="e.g., 5'10&quot; or 178 cm" required />
         </div>
         <div>
-          <label for="social">social media account (non private page)</label>
-          <input id="social" name="social" type="url" placeholder="https://instagram.com/yourname" required />
+          <label for="social">instagram handle (non private page)</label>
+          <div style="display:flex;">
+            <span style="padding:10px;border:1px solid rgba(0,0,0,.18);border-right:none;background:rgba(255,255,255,.78);font-size:13px;line-height:1;">
+              instagram.com/
+            </span>
+            <input id="social" name="social" type="text" placeholder="yourhandle" required style="border-left:none;" />
+          </div>
         </div>
       </div>
 
@@ -292,15 +297,6 @@
 
       function val(id){ return document.getElementById(id).value.trim(); }
 
-      function isValidUrl(u){
-        try{
-          const url = new URL(u);
-          return url.protocol === "http:" || url.protocol === "https:";
-        }catch(e){
-          return false;
-        }
-      }
-
       function openModal(){
         modalBackdrop.style.display = "flex";
         modalBackdrop.setAttribute("aria-hidden", "false");
@@ -344,9 +340,12 @@
           return showError("Please enter a valid email address.");
         }
 
-        if(!isValidUrl(social)){
-          return showError("Please paste a valid social media URL (must start with https://).");
+        if(!/^[A-Za-z0-9._]+$/.test(social.replace(/^@/,""))){
+          return showError("Please enter a valid Instagram handle.");
         }
+
+        const igHandle = social.replace(/^@/,"");
+        const instagramUrl = "https://instagram.com/" + igHandle;
 
         const to = "longevityco@gmail.com"; // ✅ recipient locked as requested
         const subject = `longevity casting submission — ${name}`;
@@ -362,7 +361,7 @@ Pants Size: ${pants}
 Shirt Size: ${shirt}
 Shoe Size: ${shoes}
 
-Social (non private): ${social}
+Instagram: ${instagramUrl}
 `;
 
         // Show the thank-you modal BEFORE opening the email client.
