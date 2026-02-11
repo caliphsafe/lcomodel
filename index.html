@@ -348,22 +348,25 @@
         const instagramUrl = "https://instagram.com/" + igHandle;
 
         try{
+          const params = new URLSearchParams();
+          params.append("name", name);
+          params.append("email", email);
+          params.append("height", height);
+          params.append("pants", pants);
+          params.append("shirt", shirt);
+          params.append("shoes", shoes);
+          params.append("igHandle", igHandle);
+          params.append("instagramUrl", instagramUrl);
+
           const res = await fetch(ENDPOINT, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name,
-              email,
-              height,
-              pants,
-              shirt,
-              shoes,
-              igHandle,
-              instagramUrl
-            })
+            body: params
           });
 
-          const json = await res.json().catch(() => ({}));
+          const text = await res.text();
+          let json = {};
+          try { json = JSON.parse(text); } catch(_) {}
+
           if(!res.ok || json.ok === false){
             throw new Error(json.error || "Bad response");
           }
