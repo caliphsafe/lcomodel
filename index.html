@@ -274,9 +274,8 @@
 
   <script>
     // IMPORTANT NOTE:
-    // On a purely static one-pager, the only way to "send to longevityco@gmail.com"
-    // without a backend is to open the user's email client via mailto:.
-    // The email recipient is hard-coded below.
+    // This version posts your form data to a Google Apps Script Web App endpoint,
+    // which writes submissions into a Google Sheet in the longevityco@gmail.com account.
     (function(){
       const form = document.getElementById("castingForm");
       const errBox = document.getElementById("err");
@@ -284,6 +283,8 @@
 
       const modalBackdrop = document.getElementById("modalBackdrop");
       const closeModalBtn = document.getElementById("closeModalBtn");
+
+      const ENDPOINT = "https://script.google.com/macros/s/AKfycbx1msygSo5ELA4MMxl3YHsuEEea4h6DoRCs9foi1qMj1fgCH6osijjs5x8dbAiMd4U3/exec";
 
       function showError(msg){
         errBox.style.display = "block";
@@ -319,7 +320,7 @@
         clearError();
       });
 
-      form.addEventListener("submit", (e) => {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
         clearError();
 
@@ -346,33 +347,32 @@
         const igHandle = social.replace(/^@/,"");
         const instagramUrl = "https://instagram.com/" + igHandle;
 
-        const to = "longevityco@gmail.com"; // ✅ recipient locked as requested
-        const subject = `longevity casting submission — ${name}`;
+        try{
+          const res = await fetch(ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name,
+              email,
+              height,
+              pants,
+              shirt,
+              shoes,
+              igHandle,
+              instagramUrl
+            })
+          });
 
-        const body =
-`longevity — Model Casting Submission
+          const json = await res.json().catch(() => ({}));
+          if(!res.ok || json.ok === false){
+            throw new Error(json.error || "Bad response");
+          }
 
-Name: ${name}
-Email: ${email}
-Height: ${height}
-
-Pants Size: ${pants}
-Shirt Size: ${shirt}
-Shoe Size: ${shoes}
-
-Instagram: ${instagramUrl}
-`;
-
-        // Show the thank-you modal BEFORE opening the email client.
-        // (mailto can't confirm true delivery; it only opens a pre-filled draft to the correct inbox.)
-        openModal();
-
-        const mailto = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-        // Give the modal a beat to render, then open email draft
-        setTimeout(() => {
-          window.location.href = mailto;
-        }, 250);
+          openModal();
+          form.reset();
+        }catch(err){
+          showError("Submission failed. Please try again.");
+        }
       });
     })();
   </script>
